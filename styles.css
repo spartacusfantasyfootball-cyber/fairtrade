@@ -147,6 +147,23 @@ nav.site-nav a.active {
 .site-footer a { color: #A9BDB3; }
 
 /* Shared panel treatment */
+.rank-controls-top {
+  margin-bottom: 18px;
+}
+
+.position-section {
+  margin-bottom: 22px;
+}
+
+.position-heading {
+  font-family: 'Teko', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--panel-a);
+  margin: 0 0 8px;
+}
+
 .rank-panel, .side {
   background: linear-gradient(165deg, var(--panel-a) 0%, var(--panel-b) 100%);
   border-radius: 14px;
