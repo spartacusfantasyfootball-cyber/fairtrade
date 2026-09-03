@@ -34,7 +34,7 @@
           <th class="num">Rank</th>
           <th>Player</th>
           <th>Pos</th>
-          <th class="num">Value</th>
+          <th class="num">Value (1QB / Full PPR)</th>
         </tr>
       </thead>
       <tbody id="rank-body"></tbody>
@@ -47,7 +47,11 @@
 <script>
 document.getElementById('week-title').textContent = WEEK_SUBTITLE;
 
-const ranked = PLAYERS.slice().sort((a,b) => b.value - a.value);
+function primaryValue(p) {
+  return p.pos === 'QB' ? p.oneQB : p.ppr;
+}
+
+const ranked = PLAYERS.slice().sort((a,b) => (primaryValue(b) || 0) - (primaryValue(a) || 0));
 
 function renderRows(list) {
   const body = document.getElementById('rank-body');
@@ -55,14 +59,16 @@ function renderRows(list) {
     body.innerHTML = '<tr><td colspan="4" style="padding:16px;color:var(--ink-soft);">No players match your search</td></tr>';
     return;
   }
-  body.innerHTML = list.map(p =>
-    '<tr>' +
+  body.innerHTML = list.map(p => {
+    const v = primaryValue(p);
+    const vDisp = v == null ? '—' : v.toFixed(1);
+    return '<tr>' +
       '<td class="num rank-num">' + p.rank + '</td>' +
       '<td>' + p.name + '</td>' +
       '<td class="pos-tag">' + p.pos + '</td>' +
-      '<td class="num rank-value">' + p.value.toFixed(1) + '</td>' +
-    '</tr>'
-  ).join('');
+      '<td class="num rank-value">' + vDisp + '</td>' +
+    '</tr>';
+  }).join('');
 }
 
 const withRank = ranked.map((p, i) => Object.assign({}, p, { rank: i + 1 }));
