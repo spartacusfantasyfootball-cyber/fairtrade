@@ -1,6 +1,6 @@
 :root {
-  --field: #16302A;
-  --field-dark: #102420;
+  --field: #204A3D;
+  --field-dark: #17362C;
   --panel-a: #FBF8F0;
   --panel-b: #EFE9D8;
   --ink: #1D211F;
@@ -42,7 +42,7 @@ body {
 
 .brand-block { display: flex; flex-direction: column; }
 
-.brand h1 {
+.brand-block h1 {
   font-family: 'Teko', sans-serif;
   font-weight: 600;
   font-size: 34px;
