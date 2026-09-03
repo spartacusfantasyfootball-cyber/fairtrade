@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FairTrade — Weekly Trade Values</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="site-header">
+    <div class="brand-block">
+      <h1>FairTrade</h1>
+      <p class="week-title" id="week-title"></p>
+    </div>
+    <nav class="site-nav">
+      <a href="index.html" class="active">Rankings</a>
+      <a href="calculator.html">Calculator</a>
+    </nav>
+  </header>
+
+  <p class="subhead">Consolidated trade values, normalized so no single source skews the average.</p>
+
+  <div class="rank-panel">
+    <div class="rank-controls">
+      <input class="search-input" id="search" type="text" placeholder="Search a player...">
+    </div>
+    <table class="rank-table">
+      <thead>
+        <tr>
+          <th class="num">Rank</th>
+          <th>Player</th>
+          <th>Pos</th>
+          <th class="num">Value</th>
+        </tr>
+      </thead>
+      <tbody id="rank-body"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script src="data.js"></script>
+<script>
+document.getElementById('week-title').textContent = WEEK_SUBTITLE;
+
+const ranked = PLAYERS.slice().sort((a,b) => b.value - a.value);
+
+function renderRows(list) {
+  const body = document.getElementById('rank-body');
+  if (list.length === 0) {
+    body.innerHTML = '<tr><td colspan="4" style="padding:16px;color:var(--ink-soft);">No players match your search</td></tr>';
+    return;
+  }
+  body.innerHTML = list.map(p =>
+    '<tr>' +
+      '<td class="num rank-num">' + p.rank + '</td>' +
+      '<td>' + p.name + '</td>' +
+      '<td class="pos-tag">' + p.pos + '</td>' +
+      '<td class="num rank-value">' + p.value.toFixed(1) + '</td>' +
+    '</tr>'
+  ).join('');
+}
+
+const withRank = ranked.map((p, i) => Object.assign({}, p, { rank: i + 1 }));
+renderRows(withRank);
+
+document.getElementById('search').addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  const filtered = q === '' ? withRank : withRank.filter(p => p.name.toLowerCase().includes(q));
+  renderRows(filtered);
+});
+</script>
+</body>
+</html>
