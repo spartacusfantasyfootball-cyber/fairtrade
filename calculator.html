@@ -24,6 +24,19 @@
 
   <p class="subhead">Search players, add them to each side, see who wins the trade.</p>
 
+  <div class="mode-bar">
+    <div class="mode-group">
+      <span class="mode-label">QB format</span>
+      <button class="mode-btn active" id="mode-1qb" data-group="qb" data-value="1QB">1QB</button>
+      <button class="mode-btn" id="mode-2qb" data-group="qb" data-value="2QB">2QB / Superflex</button>
+    </div>
+    <div class="mode-group">
+      <span class="mode-label">Scoring</span>
+      <button class="mode-btn active" id="mode-ppr" data-group="ppr" data-value="PPR">Full PPR</button>
+      <button class="mode-btn" id="mode-half" data-group="ppr" data-value="HALF">Half PPR</button>
+    </div>
+  </div>
+
   <div class="board">
     <div class="side" id="side-a">
       <p class="side-label">Side A</p>
@@ -62,7 +75,17 @@
 <script>
 document.getElementById('week-title').textContent = WEEK_SUBTITLE;
 
-const state = { a: [], b: [] };
+const state = { a: [], b: [], qbMode: '1QB', pprMode: 'PPR' };
+
+function getValue(p) {
+  if (p.pos === 'QB') {
+    const v = state.qbMode === '1QB' ? p.oneQB : p.twoQB;
+    return v == null ? null : v;
+  } else {
+    const v = state.pprMode === 'PPR' ? p.ppr : p.half;
+    return v == null ? null : v;
+  }
+}
 
 function normalize(s) { return s.toLowerCase(); }
 
@@ -74,12 +97,14 @@ function renderSuggestions(side) {
   const taken = new Set(state.a.concat(state.b).map(p => p.name));
   const matches = PLAYERS.filter(p => normalize(p.name).includes(q) && !taken.has(p.name)).slice(0, 8);
   if (matches.length === 0) { box.style.display = 'none'; box.innerHTML = ''; return; }
-  box.innerHTML = matches.map(p =>
-    '<div class="suggestion-row" data-name="' + p.name.replace(/"/g,'&quot;') + '">' +
+  box.innerHTML = matches.map(p => {
+    const v = getValue(p);
+    const vDisp = v == null ? '—' : v.toFixed(1);
+    return '<div class="suggestion-row" data-name="' + p.name.replace(/"/g,'&quot;') + '">' +
       '<span class="suggestion-name">' + p.name + '</span>' +
-      '<span class="suggestion-meta">' + p.pos + ' · ' + p.value.toFixed(1) + '</span>' +
-    '</div>'
-  ).join('');
+      '<span class="suggestion-meta">' + p.pos + ' · ' + vDisp + '</span>' +
+    '</div>';
+  }).join('');
   box.style.display = 'block';
   box.querySelectorAll('.suggestion-row').forEach(row => {
     row.addEventListener('click', () => {
@@ -109,20 +134,22 @@ function render() {
     if (state[side].length === 0) {
       roster.innerHTML = '<div class="roster-empty">No players added yet</div>';
     } else {
-      roster.innerHTML = state[side].map(p =>
-        '<div class="roster-row">' +
+      roster.innerHTML = state[side].map(p => {
+        const v = getValue(p);
+        const vDisp = v == null ? '—' : v.toFixed(1);
+        return '<div class="roster-row">' +
           '<span><span class="roster-name">' + p.name + '</span><span class="roster-pos">' + p.pos + '</span></span>' +
           '<span class="roster-right">' +
-            '<span class="roster-value">' + p.value.toFixed(1) + '</span>' +
+            '<span class="roster-value">' + vDisp + '</span>' +
             '<button class="remove-btn" data-side="' + side + '" data-name="' + p.name.replace(/"/g,'&quot;') + '">&times;</button>' +
           '</span>' +
-        '</div>'
-      ).join('');
+        '</div>';
+      }).join('');
     }
   });
 
-  const totalA = state.a.reduce((s,p) => s + p.value, 0);
-  const totalB = state.b.reduce((s,p) => s + p.value, 0);
+  const totalA = state.a.reduce((s,p) => s + (getValue(p) || 0), 0);
+  const totalB = state.b.reduce((s,p) => s + (getValue(p) || 0), 0);
   document.getElementById('total-a').textContent = totalA.toFixed(1);
   document.getElementById('total-b').textContent = totalB.toFixed(1);
 
@@ -159,6 +186,18 @@ document.addEventListener('click', (e) => {
     document.getElementById('suggestions-a').style.display = 'none';
     document.getElementById('suggestions-b').style.display = 'none';
   }
+});
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const group = btn.getAttribute('data-group');
+    const value = btn.getAttribute('data-value');
+    document.querySelectorAll('.mode-btn[data-group="' + group + '"]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (group === 'qb') state.qbMode = value;
+    if (group === 'ppr') state.pprMode = value;
+    render();
+  });
 });
 
 render();
