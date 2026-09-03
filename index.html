@@ -24,22 +24,11 @@
 
   <p class="subhead">Consolidated trade values, normalized so no single source skews the average.</p>
 
-  <div class="rank-panel">
-    <div class="rank-controls">
-      <input class="search-input" id="search" type="text" placeholder="Search a player...">
-    </div>
-    <table class="rank-table">
-      <thead>
-        <tr>
-          <th class="num">Rank</th>
-          <th>Player</th>
-          <th>Pos</th>
-          <th class="num">Value (1QB / Full PPR)</th>
-        </tr>
-      </thead>
-      <tbody id="rank-body"></tbody>
-    </table>
+  <div class="rank-controls-top">
+    <input class="search-input" id="search" type="text" placeholder="Search a player...">
   </div>
+
+  <div id="sections"></div>
 
 </div>
 
@@ -47,37 +36,66 @@
 <script>
 document.getElementById('week-title').textContent = WEEK_SUBTITLE;
 
-function primaryValue(p) {
-  return p.pos === 'QB' ? p.oneQB : p.ppr;
+const SECTIONS = [
+  { pos: 'QB', label: 'QB', fmt1: 'oneQB', fmt1Label: '1QB', fmt2: 'twoQB', fmt2Label: '2QB' },
+  { pos: 'RB', label: 'RB', fmt1: 'ppr', fmt1Label: 'PPR', fmt2: 'half', fmt2Label: 'Half PPR' },
+  { pos: 'WR', label: 'WR', fmt1: 'ppr', fmt1Label: 'PPR', fmt2: 'half', fmt2Label: 'Half PPR' },
+  { pos: 'TE', label: 'TE', fmt1: 'ppr', fmt1Label: 'PPR', fmt2: 'half', fmt2Label: 'Half PPR' },
+];
+
+const grouped = SECTIONS.map(sec => {
+  const players = PLAYERS.filter(p => p.pos === sec.pos)
+    .slice()
+    .sort((a, b) => (b[sec.fmt1] || 0) - (a[sec.fmt1] || 0))
+    .map((p, i) => Object.assign({}, p, { rank: i + 1 }));
+  return Object.assign({}, sec, { players });
+});
+
+function fmtVal(v) {
+  return v == null ? '\u2014' : v.toFixed(1);
 }
 
-const ranked = PLAYERS.slice().sort((a,b) => (primaryValue(b) || 0) - (primaryValue(a) || 0));
+function renderSections(query) {
+  const container = document.getElementById('sections');
+  const q = query.trim().toLowerCase();
 
-function renderRows(list) {
-  const body = document.getElementById('rank-body');
-  if (list.length === 0) {
-    body.innerHTML = '<tr><td colspan="4" style="padding:16px;color:var(--ink-soft);">No players match your search</td></tr>';
-    return;
-  }
-  body.innerHTML = list.map(p => {
-    const v = primaryValue(p);
-    const vDisp = v == null ? '—' : v.toFixed(1);
-    return '<tr>' +
-      '<td class="num rank-num">' + p.rank + '</td>' +
-      '<td>' + p.name + '</td>' +
-      '<td class="pos-tag">' + p.pos + '</td>' +
-      '<td class="num rank-value">' + vDisp + '</td>' +
-    '</tr>';
+  container.innerHTML = grouped.map(sec => {
+    const rows = q === '' ? sec.players : sec.players.filter(p => p.name.toLowerCase().includes(q));
+    if (rows.length === 0) return '';
+    const rowsHtml = rows.map(p =>
+      '<tr>' +
+        '<td class="num rank-num">' + p.rank + '</td>' +
+        '<td>' + p.name + '</td>' +
+        '<td class="num rank-value">' + fmtVal(p[sec.fmt1]) + '</td>' +
+        '<td class="num rank-value">' + fmtVal(p[sec.fmt2]) + '</td>' +
+      '</tr>'
+    ).join('');
+    return (
+      '<div class="position-section">' +
+        '<p class="position-heading">' + sec.label + '</p>' +
+        '<div class="rank-panel">' +
+          '<table class="rank-table">' +
+            '<thead><tr>' +
+              '<th class="num">Rank</th><th>Player</th>' +
+              '<th class="num">' + sec.fmt1Label + '</th>' +
+              '<th class="num">' + sec.fmt2Label + '</th>' +
+            '</tr></thead>' +
+            '<tbody>' + rowsHtml + '</tbody>' +
+          '</table>' +
+        '</div>' +
+      '</div>'
+    );
   }).join('');
+
+  if (container.innerHTML === '') {
+    container.innerHTML = '<p class="subhead">No players match your search.</p>';
+  }
 }
 
-const withRank = ranked.map((p, i) => Object.assign({}, p, { rank: i + 1 }));
-renderRows(withRank);
+renderSections('');
 
 document.getElementById('search').addEventListener('input', (e) => {
-  const q = e.target.value.trim().toLowerCase();
-  const filtered = q === '' ? withRank : withRank.filter(p => p.name.toLowerCase().includes(q));
-  renderRows(filtered);
+  renderSections(e.target.value);
 });
 </script>
 </body>
