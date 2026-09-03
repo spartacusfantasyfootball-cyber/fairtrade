@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FairTrade — Trade Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="site-header">
+    <div class="brand-block">
+      <h1>FairTrade</h1>
+      <p class="week-title" id="week-title"></p>
+    </div>
+    <nav class="site-nav">
+      <a href="index.html">Rankings</a>
+      <a href="calculator.html" class="active">Calculator</a>
+    </nav>
+  </header>
+
+  <p class="subhead">Search players, add them to each side, see who wins the trade.</p>
+
+  <div class="board">
+    <div class="side" id="side-a">
+      <p class="side-label">Side A</p>
+      <div class="search-box">
+        <input class="search-input" id="search-a" type="text" placeholder="Search a player...">
+        <div class="suggestions" id="suggestions-a"></div>
+      </div>
+      <div class="roster" id="roster-a"></div>
+      <div class="total-row">
+        <span class="total-label">TOTAL VALUE</span>
+        <span class="total-value" id="total-a">0.0</span>
+      </div>
+    </div>
+
+    <div class="side" id="side-b">
+      <p class="side-label">Side B</p>
+      <div class="search-box">
+        <input class="search-input" id="search-b" type="text" placeholder="Search a player...">
+        <div class="suggestions" id="suggestions-b"></div>
+      </div>
+      <div class="roster" id="roster-b"></div>
+      <div class="total-row">
+        <span class="total-label">TOTAL VALUE</span>
+        <span class="total-value" id="total-b">0.0</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <div class="verdict-text" id="verdict-text">Add players to both sides to see the verdict</div>
+  </div>
+
+</div>
+
+<script src="data.js"></script>
+<script>
+document.getElementById('week-title').textContent = WEEK_SUBTITLE;
+
+const state = { a: [], b: [] };
+
+function normalize(s) { return s.toLowerCase(); }
+
+function renderSuggestions(side) {
+  const input = document.getElementById('search-' + side);
+  const box = document.getElementById('suggestions-' + side);
+  const q = normalize(input.value.trim());
+  if (q.length < 1) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  const taken = new Set(state.a.concat(state.b).map(p => p.name));
+  const matches = PLAYERS.filter(p => normalize(p.name).includes(q) && !taken.has(p.name)).slice(0, 8);
+  if (matches.length === 0) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  box.innerHTML = matches.map(p =>
+    '<div class="suggestion-row" data-name="' + p.name.replace(/"/g,'&quot;') + '">' +
+      '<span class="suggestion-name">' + p.name + '</span>' +
+      '<span class="suggestion-meta">' + p.pos + ' · ' + p.value.toFixed(1) + '</span>' +
+    '</div>'
+  ).join('');
+  box.style.display = 'block';
+  box.querySelectorAll('.suggestion-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const name = row.getAttribute('data-name');
+      const player = PLAYERS.find(p => p.name === name);
+      if (player) addPlayer(side, player);
+      input.value = '';
+      box.style.display = 'none';
+      box.innerHTML = '';
+    });
+  });
+}
+
+function addPlayer(side, player) {
+  state[side].push(player);
+  render();
+}
+
+function removePlayer(side, name) {
+  state[side] = state[side].filter(p => p.name !== name);
+  render();
+}
+
+function render() {
+  ['a','b'].forEach(side => {
+    const roster = document.getElementById('roster-' + side);
+    if (state[side].length === 0) {
+      roster.innerHTML = '<div class="roster-empty">No players added yet</div>';
+    } else {
+      roster.innerHTML = state[side].map(p =>
+        '<div class="roster-row">' +
+          '<span><span class="roster-name">' + p.name + '</span><span class="roster-pos">' + p.pos + '</span></span>' +
+          '<span class="roster-right">' +
+            '<span class="roster-value">' + p.value.toFixed(1) + '</span>' +
+            '<button class="remove-btn" data-side="' + side + '" data-name="' + p.name.replace(/"/g,'&quot;') + '">&times;</button>' +
+          '</span>' +
+        '</div>'
+      ).join('');
+    }
+  });
+
+  const totalA = state.a.reduce((s,p) => s + p.value, 0);
+  const totalB = state.b.reduce((s,p) => s + p.value, 0);
+  document.getElementById('total-a').textContent = totalA.toFixed(1);
+  document.getElementById('total-b').textContent = totalB.toFixed(1);
+
+  const sideAEl = document.getElementById('side-a');
+  const sideBEl = document.getElementById('side-b');
+  sideAEl.classList.remove('winning');
+  sideBEl.classList.remove('winning');
+
+  const verdict = document.getElementById('verdict-text');
+  if (state.a.length === 0 && state.b.length === 0) {
+    verdict.innerHTML = 'Add players to both sides to see the verdict';
+  } else {
+    const diff = Math.abs(totalA - totalB);
+    if (diff < 0.5) {
+      verdict.innerHTML = 'Even trade';
+    } else if (totalA > totalB) {
+      sideAEl.classList.add('winning');
+      verdict.innerHTML = 'Side A wins by <span class="amt">' + diff.toFixed(1) + '</span> points';
+    } else {
+      sideBEl.classList.add('winning');
+      verdict.innerHTML = 'Side B wins by <span class="amt">' + diff.toFixed(1) + '</span> points';
+    }
+  }
+
+  document.querySelectorAll('.remove-btn').forEach(btn => {
+    btn.addEventListener('click', () => removePlayer(btn.getAttribute('data-side'), btn.getAttribute('data-name')));
+  });
+}
+
+document.getElementById('search-a').addEventListener('input', () => renderSuggestions('a'));
+document.getElementById('search-b').addEventListener('input', () => renderSuggestions('b'));
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.search-box')) {
+    document.getElementById('suggestions-a').style.display = 'none';
+    document.getElementById('suggestions-b').style.display = 'none';
+  }
+});
+
+render();
+</script>
+</body>
+</html>
