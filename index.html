@@ -23,7 +23,8 @@
   </header>
 
   <p class="subhead">Consolidated trade values, normalized so no single source skews the average.
-  The small number next to each value is how many sites it's based on — <span class="src-badge src-badge-low" style="position:static;">2</span> or fewer means treat it with extra caution.</p>
+  The small number next to each value is how many sites it's based on. With 5, one outlier
+  opinion gets balanced out by the rest; with <span class="src-badge src-badge-low" style="position:static;">2</span> or fewer, there's little to balance it against — treat those with extra caution.</p>
 
   <div class="rank-controls-top">
     <input class="search-input" id="search" type="text" placeholder="Search a player...">
@@ -61,7 +62,10 @@ function fmtCell(val, src) {
   if (src == null) return valStr;
   const low = src <= 2;
   const cls = low ? 'src-badge src-badge-low' : 'src-badge';
-  return valStr + '<span class="' + cls + '" title="' + src + ' source' + (src===1?'':'s') + '">' + src + '</span>';
+  const tip = low
+    ? src + ' source' + (src===1?'':'s') + ' — leans on very little independent input, treat with extra caution'
+    : src + ' sources';
+  return valStr + '<span class="' + cls + '" title="' + tip + '">' + src + '</span>';
 }
 
 function renderSections(query) {
