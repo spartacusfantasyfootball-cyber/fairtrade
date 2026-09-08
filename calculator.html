@@ -97,8 +97,12 @@ function getSourceCount(p) {
 
 function srcBadge(src) {
   if (src == null) return '';
-  const cls = src <= 2 ? 'src-badge src-badge-low' : 'src-badge';
-  return '<span class="' + cls + '" title="' + src + ' source' + (src===1?'':'s') + '">' + src + '</span>';
+  const low = src <= 2;
+  const cls = low ? 'src-badge src-badge-low' : 'src-badge';
+  const tip = low
+    ? src + ' source' + (src===1?'':'s') + ' — leans on very little independent input, treat with extra caution'
+    : src + ' sources';
+  return '<span class="' + cls + '" title="' + tip + '">' + src + '</span>';
 }
 
 function normalize(s) { return s.toLowerCase(); }
