@@ -100,7 +100,7 @@ function srcBadge(src) {
   const low = src <= 2;
   const cls = low ? 'src-badge src-badge-low' : 'src-badge';
   const tip = low
-    ? src + ' source' + (src===1?'':'s') + ' — leans on very little independent input, treat with extra caution'
+    ? src + ' source' + (src===1?'':'s') + ' — not really a consolidated number at this point, treat with extra caution'
     : src + ' sources';
   return '<span class="' + cls + '" title="' + tip + '">' + src + '</span>';
 }
