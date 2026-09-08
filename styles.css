@@ -289,6 +289,14 @@ table.rank-table tbody tr:hover {
   .board { grid-template-columns: 1fr; }
 }
 
+@media (max-width: 480px) {
+  .wrap { padding: 18px 10px 48px; }
+  table.rank-table thead th { padding: 10px 10px 8px; font-size: 10.5px; }
+  table.rank-table tbody td { padding: 8px 10px; font-size: 12.5px; }
+  .rank-value { font-size: 17px; }
+  .brand-block h1 { font-size: 28px; }
+}
+
 .side {
   padding: 20px 18px 18px;
   display: flex;
@@ -335,6 +343,7 @@ table.rank-table tbody tr:hover {
 .suggestion-row:hover { background: rgba(227,168,59,0.10); }
 .suggestion-name { font-weight: 500; }
 .suggestion-meta { color: var(--ink-soft); font-size: 12px; }
+.suggestion-pos { margin-right: 8px; }
 
 .roster {
   margin-top: 14px;
