@@ -87,6 +87,20 @@ function getValue(p) {
   }
 }
 
+function getSourceCount(p) {
+  if (p.pos === 'QB') {
+    return state.qbMode === '1QB' ? p.oneQBSrc : p.twoQBSrc;
+  } else {
+    return state.pprMode === 'PPR' ? p.pprSrc : p.halfSrc;
+  }
+}
+
+function srcBadge(src) {
+  if (src == null) return '';
+  const cls = src <= 2 ? 'src-badge src-badge-low' : 'src-badge';
+  return '<span class="' + cls + '" title="' + src + ' source' + (src===1?'':'s') + '">' + src + '</span>';
+}
+
 function normalize(s) { return s.toLowerCase(); }
 
 function renderSuggestions(side) {
@@ -102,7 +116,7 @@ function renderSuggestions(side) {
     const vDisp = v == null ? '—' : v.toFixed(1);
     return '<div class="suggestion-row" data-name="' + p.name.replace(/"/g,'&quot;') + '">' +
       '<span class="suggestion-name">' + p.name + '</span>' +
-      '<span class="suggestion-meta">' + p.pos + ' · ' + vDisp + '</span>' +
+      '<span class="suggestion-meta">' + p.pos + ' · ' + vDisp + srcBadge(getSourceCount(p)) + '</span>' +
     '</div>';
   }).join('');
   box.style.display = 'block';
@@ -140,7 +154,7 @@ function render() {
         return '<div class="roster-row">' +
           '<span><span class="roster-name">' + p.name + '</span><span class="roster-pos">' + p.pos + '</span></span>' +
           '<span class="roster-right">' +
-            '<span class="roster-value">' + vDisp + '</span>' +
+            '<span class="roster-value">' + vDisp + '</span>' + srcBadge(getSourceCount(p)) +
             '<button class="remove-btn" data-side="' + side + '" data-name="' + p.name.replace(/"/g,'&quot;') + '">&times;</button>' +
           '</span>' +
         '</div>';
