@@ -69,6 +69,11 @@
     <div class="verdict-text" id="verdict-text">Add players to both sides to see the verdict</div>
   </div>
 
+  <footer class="site-footer">
+    Sources: Yahoo, CBS Sports, FantasyPros, RotoStreetJournal, USA Today —
+    each site's values are normalized before blending, so no one source's scale dominates the average.
+  </footer>
+
 </div>
 
 <script src="data.js"></script>
@@ -120,7 +125,7 @@ function renderSuggestions(side) {
     const vDisp = v == null ? '—' : v.toFixed(1);
     return '<div class="suggestion-row" data-name="' + p.name.replace(/"/g,'&quot;') + '">' +
       '<span class="suggestion-name">' + p.name + '</span>' +
-      '<span class="suggestion-meta">' + p.pos + ' · ' + vDisp + srcBadge(getSourceCount(p)) + '</span>' +
+      '<span class="suggestion-meta"><span class="suggestion-pos">' + p.pos + '</span>' + vDisp + srcBadge(getSourceCount(p)) + '</span>' +
     '</div>';
   }).join('');
   box.style.display = 'block';
