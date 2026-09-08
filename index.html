@@ -69,10 +69,32 @@ function fmtVal(v) {
   return v == null ? '\u2014' : v.toFixed(1);
 }
 
-function fmtCell(val, src) {
+// How many sources actually contributed data this week, per format field —
+// taken as the max observed count across all players for that field. A
+// well-known player (Josh Allen, etc.) is essentially always covered by
+// every currently-live site, so the max observed is a reliable stand-in
+// for "how many sources exist this week," without needing data.js to carry
+// a separate explicit field for it.
+const MAX_SRC = {};
+['oneQBSrc','twoQBSrc','pprSrc','halfSrc'].forEach(field => {
+  MAX_SRC[field] = PLAYERS.reduce((m, p) => Math.max(m, p[field] || 0), 0);
+});
+
+function fmtCell(val, src, srcField) {
   const valStr = fmtVal(val);
   if (src == null) return valStr;
-  const low = src <= 2;
+  // Relative threshold, not a fixed "<=2" — a fixed rule was calibrated for
+  // a normal 5-source week. In a week with only 3 sources live at all,
+  // "2 of 3" is actually the best coverage possible, but a fixed rule
+  // flagged it the same as a genuinely thin "2 of 5" — found on the real
+  // first production week, where this made literally every RB/WR/TE show
+  // the same flag with no exceptions, so it stopped meaning anything.
+  // Reduces to the exact same "<=2" behavior in a normal 5-source week —
+  // this is a generalization, not a different rule. A bare single source
+  // is always flagged regardless of the ratio (never really "consolidated"
+  // no matter how few sites exist this week overall).
+  const maxAvail = MAX_SRC[srcField] || 5;
+  const low = src === 1 || src / maxAvail < 0.6;
   const cls = low ? 'src-badge src-badge-low' : 'src-badge';
   const tip = low
     ? src + ' source' + (src===1?'':'s') + ' — not really a consolidated number at this point, treat with extra caution'
@@ -91,8 +113,8 @@ function renderSections(query) {
       '<tr>' +
         '<td class="num rank-num">' + p.rank + '</td>' +
         '<td>' + p.name + '</td>' +
-        '<td class="num rank-value">' + fmtCell(p[sec.fmt1], p[sec.fmt1Src]) + '</td>' +
-        '<td class="num rank-value">' + fmtCell(p[sec.fmt2], p[sec.fmt2Src]) + '</td>' +
+        '<td class="num rank-value">' + fmtCell(p[sec.fmt1], p[sec.fmt1Src], sec.fmt1Src) + '</td>' +
+        '<td class="num rank-value">' + fmtCell(p[sec.fmt2], p[sec.fmt2Src], sec.fmt2Src) + '</td>' +
       '</tr>'
     ).join('');
     return (
