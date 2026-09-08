@@ -106,9 +106,29 @@ function getSourceCount(p) {
   }
 }
 
-function srcBadge(src) {
+function getSourceField(p) {
+  if (p.pos === 'QB') {
+    return state.qbMode === '1QB' ? 'oneQBSrc' : 'twoQBSrc';
+  } else {
+    return state.pprMode === 'PPR' ? 'pprSrc' : 'halfSrc';
+  }
+}
+
+// How many sources actually contributed data this week, per format field —
+// taken as the max observed count across all players for that field. Same
+// relative-threshold logic as the rankings page (see index.html for the
+// full reasoning) — a fixed "<=2" rule was calibrated for a normal
+// 5-source week and stopped meaning anything in a thin week where every
+// player showed the same flag.
+const MAX_SRC = {};
+['oneQBSrc','twoQBSrc','pprSrc','halfSrc'].forEach(field => {
+  MAX_SRC[field] = PLAYERS.reduce((m, p) => Math.max(m, p[field] || 0), 0);
+});
+
+function srcBadge(src, srcField) {
   if (src == null) return '';
-  const low = src <= 2;
+  const maxAvail = MAX_SRC[srcField] || 5;
+  const low = src === 1 || src / maxAvail < 0.6;
   const cls = low ? 'src-badge src-badge-low' : 'src-badge';
   const tip = low
     ? src + ' source' + (src===1?'':'s') + ' — not really a consolidated number at this point, treat with extra caution'
@@ -131,7 +151,7 @@ function renderSuggestions(side) {
     const vDisp = v == null ? '—' : v.toFixed(1);
     return '<div class="suggestion-row" data-name="' + p.name.replace(/"/g,'&quot;') + '">' +
       '<span class="suggestion-name">' + p.name + '</span>' +
-      '<span class="suggestion-meta"><span class="suggestion-pos">' + p.pos + '</span>' + vDisp + srcBadge(getSourceCount(p)) + '</span>' +
+      '<span class="suggestion-meta"><span class="suggestion-pos">' + p.pos + '</span>' + vDisp + srcBadge(getSourceCount(p), getSourceField(p)) + '</span>' +
     '</div>';
   }).join('');
   box.style.display = 'block';
@@ -169,7 +189,7 @@ function render() {
         return '<div class="roster-row">' +
           '<span><span class="roster-name">' + p.name + '</span><span class="roster-pos">' + p.pos + '</span></span>' +
           '<span class="roster-right">' +
-            '<span class="roster-value">' + vDisp + '</span>' + srcBadge(getSourceCount(p)) +
+            '<span class="roster-value">' + vDisp + '</span>' + srcBadge(getSourceCount(p), getSourceField(p)) +
             '<button class="remove-btn" data-side="' + side + '" data-name="' + p.name.replace(/"/g,'&quot;') + '">&times;</button>' +
           '</span>' +
         '</div>';
