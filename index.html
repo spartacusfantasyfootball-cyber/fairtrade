@@ -22,7 +22,8 @@
     </nav>
   </header>
 
-  <p class="subhead">Consolidated trade values, normalized so no single source skews the average.</p>
+  <p class="subhead">Consolidated trade values, normalized so no single source skews the average.
+  The small number next to each value is how many sites it's based on — <span class="src-badge src-badge-low" style="position:static;">2</span> or fewer means treat it with extra caution.</p>
 
   <div class="rank-controls-top">
     <input class="search-input" id="search" type="text" placeholder="Search a player...">
@@ -37,10 +38,10 @@
 document.getElementById('week-title').textContent = WEEK_SUBTITLE;
 
 const SECTIONS = [
-  { pos: 'QB', label: 'QB', fmt1: 'oneQB', fmt1Label: '1QB', fmt2: 'twoQB', fmt2Label: '2QB' },
-  { pos: 'RB', label: 'RB', fmt1: 'ppr', fmt1Label: 'PPR', fmt2: 'half', fmt2Label: 'Half PPR' },
-  { pos: 'WR', label: 'WR', fmt1: 'ppr', fmt1Label: 'PPR', fmt2: 'half', fmt2Label: 'Half PPR' },
-  { pos: 'TE', label: 'TE', fmt1: 'ppr', fmt1Label: 'PPR', fmt2: 'half', fmt2Label: 'Half PPR' },
+  { pos: 'QB', label: 'QB', fmt1: 'oneQB', fmt1Src: 'oneQBSrc', fmt1Label: '1QB', fmt2: 'twoQB', fmt2Src: 'twoQBSrc', fmt2Label: '2QB' },
+  { pos: 'RB', label: 'RB', fmt1: 'ppr', fmt1Src: 'pprSrc', fmt1Label: 'PPR', fmt2: 'half', fmt2Src: 'halfSrc', fmt2Label: 'Half PPR' },
+  { pos: 'WR', label: 'WR', fmt1: 'ppr', fmt1Src: 'pprSrc', fmt1Label: 'PPR', fmt2: 'half', fmt2Src: 'halfSrc', fmt2Label: 'Half PPR' },
+  { pos: 'TE', label: 'TE', fmt1: 'ppr', fmt1Src: 'pprSrc', fmt1Label: 'PPR', fmt2: 'half', fmt2Src: 'halfSrc', fmt2Label: 'Half PPR' },
 ];
 
 const grouped = SECTIONS.map(sec => {
@@ -55,6 +56,14 @@ function fmtVal(v) {
   return v == null ? '\u2014' : v.toFixed(1);
 }
 
+function fmtCell(val, src) {
+  const valStr = fmtVal(val);
+  if (src == null) return valStr;
+  const low = src <= 2;
+  const cls = low ? 'src-badge src-badge-low' : 'src-badge';
+  return valStr + '<span class="' + cls + '" title="' + src + ' source' + (src===1?'':'s') + '">' + src + '</span>';
+}
+
 function renderSections(query) {
   const container = document.getElementById('sections');
   const q = query.trim().toLowerCase();
@@ -66,8 +75,8 @@ function renderSections(query) {
       '<tr>' +
         '<td class="num rank-num">' + p.rank + '</td>' +
         '<td>' + p.name + '</td>' +
-        '<td class="num rank-value">' + fmtVal(p[sec.fmt1]) + '</td>' +
-        '<td class="num rank-value">' + fmtVal(p[sec.fmt2]) + '</td>' +
+        '<td class="num rank-value">' + fmtCell(p[sec.fmt1], p[sec.fmt1Src]) + '</td>' +
+        '<td class="num rank-value">' + fmtCell(p[sec.fmt2], p[sec.fmt2Src]) + '</td>' +
       '</tr>'
     ).join('');
     return (
