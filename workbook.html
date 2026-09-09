@@ -11,39 +11,35 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-  .wb-frame-wrap {
+  .wb-tabs {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px;
+  }
+  .wb-tab-btn {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px; font-weight: 500; color: #A9BDB3;
+    background: transparent; border: 1px solid #2A4A40;
+    border-radius: 20px; padding: 6px 14px; cursor: pointer;
+  }
+  .wb-tab-btn:hover { border-color: var(--gold-deep); color: var(--panel-a); }
+  .wb-tab-btn.active { background: var(--gold); border-color: var(--gold); color: var(--field-dark); }
+  .wb-panel {
     background: linear-gradient(165deg, var(--panel-a) 0%, var(--panel-b) 100%);
     border-radius: 14px;
-    box-shadow:
-      0 1px 0 rgba(255,255,255,0.5) inset,
-      0 24px 48px -20px rgba(4, 12, 9, 0.55),
-      0 2px 6px rgba(4, 12, 9, 0.15);
-    overflow: hidden;
-    position: relative;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 24px 48px -20px rgba(4, 12, 9, 0.55), 0 2px 6px rgba(4, 12, 9, 0.15);
+    overflow: auto; max-height: 78vh; position: relative;
   }
-  .wb-frame-wrap::before {
-    content: "";
-    position: absolute;
-    top: 0; left: 14px; right: 14px;
-    height: 3px;
+  .wb-panel::before {
+    content: ""; position: absolute; top: 0; left: 14px; right: 14px; height: 3px;
     border-radius: 0 0 3px 3px;
     background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold-soft) 50%, var(--gold) 80%, transparent);
   }
-  .wb-frame {
-    width: 100%;
-    height: 78vh;
-    min-height: 480px;
-    border: none;
-    display: block;
-  }
-  .wb-fallback {
-    padding: 40px 20px;
-    text-align: center;
-    color: var(--ink-soft);
-    font-size: 14px;
-  }
-  .wb-fallback a { color: var(--gold-deep); font-weight: 600; }
+  .wb-table { border-collapse: collapse; font-size: 12.5px; width: max-content; min-width: 100%; }
+  .wb-table td { padding: 4px 10px; border-bottom: 1px solid rgba(218,213,199,0.4); white-space: nowrap; }
+  .wb-table tr:hover td { background: rgba(227,168,59,0.08); }
+  .wb-loading, .wb-error { padding: 40px 20px; text-align: center; color: var(--ink-soft); font-size: 14px; }
+  .wb-error a { color: var(--gold-deep); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -60,21 +56,13 @@
     </nav>
   </header>
 
-  <p class="subhead">The full workbook — every source's raw and normalized values, plus the Methodology tab. Viewable
-  directly below; if it doesn't load, use the direct link underneath.</p>
+  <p class="subhead">The full workbook — every source's raw and normalized values, plus the Methodology tab, rendered directly here.</p>
 
-  <div class="wb-frame-wrap">
-    <iframe class="wb-frame"
-      src="https://docs.google.com/viewer?url=https%3A%2F%2Fspartacusfantasyfootball-cyber.github.io%2Ffairtrade%2Fworkbook.xlsx&embedded=true"
-      title="FairTrade workbook viewer">
-      <div class="wb-fallback">
-        Your browser doesn't support embedded viewing —
-        <a href="workbook.xlsx">open the workbook directly</a> instead.
-      </div>
-    </iframe>
-  </div>
+  <div class="wb-tabs" id="wb-tabs"></div>
+  <div class="wb-panel" id="wb-panel"><div class="wb-loading">Loading workbook...</div></div>
+
   <p class="subhead" style="margin-top:10px;">
-    Having trouble viewing it embedded? <a href="workbook.xlsx" style="color:var(--gold-deep);font-weight:600;">Open the workbook directly</a>.
+    Prefer the real spreadsheet? <a href="workbook.xlsx" style="color:var(--gold-deep);font-weight:600;">Download the workbook file</a>.
   </p>
 
   <footer class="site-footer">
@@ -86,6 +74,48 @@
 <script src="data.js"></script>
 <script>
 document.getElementById('week-title').textContent = WEEK_SUBTITLE;
+
+let workbookData = null;
+let activeSheet = null;
+
+function renderSheet(name) {
+  activeSheet = name;
+  document.querySelectorAll('.wb-tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.sheet === name);
+  });
+  const ws = workbookData.Sheets[name];
+  const fullHtml = XLSX.utils.sheet_to_html(ws, { editable: false });
+  // sheet_to_html returns a full standalone document (<html><body><table>...)
+  // — extract just the <table> itself rather than inserting a whole nested
+  // document into a div via innerHTML, which browsers handle inconsistently.
+  const match = fullHtml.match(/<table[\s\S]*<\/table>/);
+  const panel = document.getElementById('wb-panel');
+  panel.innerHTML = match ? match[0] : '<div class="wb-error">Couldn\'t render this sheet.</div>';
+  const table = panel.querySelector('table');
+  if (table) table.className = 'wb-table';
+}
+
+fetch('workbook.xlsx')
+  .then(r => {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.arrayBuffer();
+  })
+  .then(buf => {
+    workbookData = XLSX.read(buf, { type: 'array', cellStyles: true });
+    const tabsEl = document.getElementById('wb-tabs');
+    tabsEl.innerHTML = workbookData.SheetNames.map(name =>
+      '<button class="wb-tab-btn" data-sheet="' + name + '">' + name + '</button>'
+    ).join('');
+    tabsEl.querySelectorAll('.wb-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => renderSheet(btn.dataset.sheet));
+    });
+    renderSheet(workbookData.SheetNames[0]);
+  })
+  .catch(err => {
+    document.getElementById('wb-panel').innerHTML =
+      '<div class="wb-error">Couldn\'t load the workbook (' + err.message + ') — ' +
+      '<a href="workbook.xlsx">download it directly</a> instead.</div>';
+  });
 </script>
 </body>
 </html>
