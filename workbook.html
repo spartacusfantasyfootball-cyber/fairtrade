@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FairTrade — Full Workbook</title>
+<meta property="og:title" content="FairTrade — Full Workbook">
+<meta property="og:description" content="View the full consolidated trade value workbook, including the Methodology tab, directly in your browser.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .wb-frame-wrap {
+    background: linear-gradient(165deg, var(--panel-a) 0%, var(--panel-b) 100%);
+    border-radius: 14px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.5) inset,
+      0 24px 48px -20px rgba(4, 12, 9, 0.55),
+      0 2px 6px rgba(4, 12, 9, 0.15);
+    overflow: hidden;
+    position: relative;
+  }
+  .wb-frame-wrap::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 14px; right: 14px;
+    height: 3px;
+    border-radius: 0 0 3px 3px;
+    background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold-soft) 50%, var(--gold) 80%, transparent);
+  }
+  .wb-frame {
+    width: 100%;
+    height: 78vh;
+    min-height: 480px;
+    border: none;
+    display: block;
+  }
+  .wb-fallback {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 14px;
+  }
+  .wb-fallback a { color: var(--gold-deep); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="site-header">
+    <div class="brand-block">
+      <h1>FairTrade</h1>
+      <p class="week-title" id="week-title"></p>
+    </div>
+    <nav class="site-nav">
+      <a href="index.html">Rankings</a>
+      <a href="calculator.html">Calculator</a>
+      <a href="workbook.html" class="active">Workbook</a>
+    </nav>
+  </header>
+
+  <p class="subhead">The full workbook — every source's raw and normalized values, plus the Methodology tab. Viewable
+  directly below; if it doesn't load, use the direct link underneath.</p>
+
+  <div class="wb-frame-wrap">
+    <iframe class="wb-frame"
+      src="https://docs.google.com/viewer?url=https%3A%2F%2Fspartacusfantasyfootball-cyber.github.io%2Ffairtrade%2Fworkbook.xlsx&embedded=true"
+      title="FairTrade workbook viewer">
+      <div class="wb-fallback">
+        Your browser doesn't support embedded viewing —
+        <a href="workbook.xlsx">open the workbook directly</a> instead.
+      </div>
+    </iframe>
+  </div>
+  <p class="subhead" style="margin-top:10px;">
+    Having trouble viewing it embedded? <a href="workbook.xlsx" style="color:var(--gold-deep);font-weight:600;">Open the workbook directly</a>.
+  </p>
+
+  <footer class="site-footer">
+    Sources: Yahoo, CBS Sports, FantasyPros, RotoStreetJournal, USA Today —
+    each site's values are normalized before blending, so no one source's scale dominates the average.
+  </footer>
+</div>
+
+<script src="data.js"></script>
+<script>
+document.getElementById('week-title').textContent = WEEK_SUBTITLE;
+</script>
+</body>
+</html>
