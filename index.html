@@ -102,9 +102,17 @@ function fmtCell(val, src, srcField) {
   const maxAvail = MAX_SRC[srcField] || 5;
   const low = src === 1 || src / maxAvail < 0.6;
   const cls = low ? 'src-badge src-badge-low' : 'src-badge';
-  const tip = low
-    ? src + ' source' + (src===1?'':'s') + ' — not really a consolidated number at this point, treat with extra caution'
-    : src + ' sources';
+  // Standard scoring has its own 2-source minimum (CBS + USA Today only —
+  // the only 2 sites that publish it), not the 3-source minimum every
+  // other format uses. 2 is both the minimum AND the maximum possible for
+  // this one format, so the tooltip says so explicitly rather than
+  // leaving "2 sources" looking like thin coverage the way it would for
+  // any other format.
+  const tip = srcField === 'stdSrc'
+    ? src + ' of 2 possible sources (CBS + USA Today \u2014 the only 2 that publish Standard scoring)'
+    : low
+      ? src + ' source' + (src===1?'':'s') + ' — not really a consolidated number at this point, treat with extra caution'
+      : src + ' sources';
   return valStr + '<span class="' + cls + '" title="' + tip + '">' + src + '</span>';
 }
 
