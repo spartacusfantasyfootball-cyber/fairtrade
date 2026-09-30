@@ -58,9 +58,9 @@ document.getElementById('week-title').textContent = WEEK_SUBTITLE;
 
 const SECTIONS = [
   { pos: 'QB', label: 'QB', fmt1: 'oneQB', fmt1Src: 'oneQBSrc', fmt1Label: '1QB', fmt2: 'twoQB', fmt2Src: 'twoQBSrc', fmt2Label: '2QB' },
-  { pos: 'RB', label: 'RB', fmt1: 'ppr', fmt1Src: 'pprSrc', fmt1Label: 'PPR', fmt2: 'half', fmt2Src: 'halfSrc', fmt2Label: 'Half PPR' },
-  { pos: 'WR', label: 'WR', fmt1: 'ppr', fmt1Src: 'pprSrc', fmt1Label: 'PPR', fmt2: 'half', fmt2Src: 'halfSrc', fmt2Label: 'Half PPR' },
-  { pos: 'TE', label: 'TE', fmt1: 'ppr', fmt1Src: 'pprSrc', fmt1Label: 'PPR', fmt2: 'half', fmt2Src: 'halfSrc', fmt2Label: 'Half PPR' },
+  { pos: 'RB', label: 'RB', fmt1: 'ppr', fmt1Src: 'pprSrc', fmt1Label: 'PPR', fmt2: 'half', fmt2Src: 'halfSrc', fmt2Label: 'Half PPR', fmt3: 'std', fmt3Src: 'stdSrc', fmt3Label: 'Standard' },
+  { pos: 'WR', label: 'WR', fmt1: 'ppr', fmt1Src: 'pprSrc', fmt1Label: 'PPR', fmt2: 'half', fmt2Src: 'halfSrc', fmt2Label: 'Half PPR', fmt3: 'std', fmt3Src: 'stdSrc', fmt3Label: 'Standard' },
+  { pos: 'TE', label: 'TE', fmt1: 'ppr', fmt1Src: 'pprSrc', fmt1Label: 'PPR', fmt2: 'half', fmt2Src: 'halfSrc', fmt2Label: 'Half PPR', fmt3: 'std', fmt3Src: 'stdSrc', fmt3Label: 'Standard' },
 ];
 
 const grouped = SECTIONS.map(sec => {
@@ -82,7 +82,7 @@ function fmtVal(v) {
 // for "how many sources exist this week," without needing data.js to carry
 // a separate explicit field for it.
 const MAX_SRC = {};
-['oneQBSrc','twoQBSrc','pprSrc','halfSrc'].forEach(field => {
+['oneQBSrc','twoQBSrc','pprSrc','halfSrc','stdSrc'].forEach(field => {
   MAX_SRC[field] = PLAYERS.reduce((m, p) => Math.max(m, p[field] || 0), 0);
 });
 
@@ -121,6 +121,7 @@ function renderSections(query) {
         '<td>' + p.name + '</td>' +
         '<td class="num rank-value">' + fmtCell(p[sec.fmt1], p[sec.fmt1Src], sec.fmt1Src) + '</td>' +
         '<td class="num rank-value">' + fmtCell(p[sec.fmt2], p[sec.fmt2Src], sec.fmt2Src) + '</td>' +
+        (sec.fmt3 ? '<td class="num rank-value">' + fmtCell(p[sec.fmt3], p[sec.fmt3Src], sec.fmt3Src) + '</td>' : '') +
       '</tr>'
     ).join('');
     return (
@@ -132,6 +133,7 @@ function renderSections(query) {
               '<th class="num">Rank</th><th>Player</th>' +
               '<th class="num">' + sec.fmt1Label + '</th>' +
               '<th class="num">' + sec.fmt2Label + '</th>' +
+              (sec.fmt3 ? '<th class="num">' + sec.fmt3Label + '</th>' : '') +
             '</tr></thead>' +
             '<tbody>' + rowsHtml + '</tbody>' +
           '</table>' +
