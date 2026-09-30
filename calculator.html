@@ -46,6 +46,7 @@
       <span class="mode-label">Scoring</span>
       <button class="mode-btn active" id="mode-ppr" data-group="ppr" data-value="PPR">Full PPR</button>
       <button class="mode-btn" id="mode-half" data-group="ppr" data-value="HALF">Half PPR</button>
+      <button class="mode-btn" id="mode-std" data-group="ppr" data-value="STD">Standard</button>
     </div>
   </div>
 
@@ -99,7 +100,7 @@ function getValue(p) {
     const v = state.qbMode === '1QB' ? p.oneQB : p.twoQB;
     return v == null ? null : v;
   } else {
-    const v = state.pprMode === 'PPR' ? p.ppr : p.half;
+    const v = state.pprMode === 'PPR' ? p.ppr : state.pprMode === 'HALF' ? p.half : p.std;
     return v == null ? null : v;
   }
 }
@@ -108,7 +109,7 @@ function getSourceCount(p) {
   if (p.pos === 'QB') {
     return state.qbMode === '1QB' ? p.oneQBSrc : p.twoQBSrc;
   } else {
-    return state.pprMode === 'PPR' ? p.pprSrc : p.halfSrc;
+    return state.pprMode === 'PPR' ? p.pprSrc : state.pprMode === 'HALF' ? p.halfSrc : p.stdSrc;
   }
 }
 
@@ -116,7 +117,7 @@ function getSourceField(p) {
   if (p.pos === 'QB') {
     return state.qbMode === '1QB' ? 'oneQBSrc' : 'twoQBSrc';
   } else {
-    return state.pprMode === 'PPR' ? 'pprSrc' : 'halfSrc';
+    return state.pprMode === 'PPR' ? 'pprSrc' : state.pprMode === 'HALF' ? 'halfSrc' : 'stdSrc';
   }
 }
 
@@ -127,7 +128,7 @@ function getSourceField(p) {
 // 5-source week and stopped meaning anything in a thin week where every
 // player showed the same flag.
 const MAX_SRC = {};
-['oneQBSrc','twoQBSrc','pprSrc','halfSrc'].forEach(field => {
+['oneQBSrc','twoQBSrc','pprSrc','halfSrc','stdSrc'].forEach(field => {
   MAX_SRC[field] = PLAYERS.reduce((m, p) => Math.max(m, p[field] || 0), 0);
 });
 
